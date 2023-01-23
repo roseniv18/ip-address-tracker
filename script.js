@@ -41,9 +41,9 @@ const getInfo = async (input_parameter) => {
 
 
 const showInfo = () => {
-    if(input.value) {
-
-        marker.remove();
+    // Always remove previous marker on submit
+    marker.remove();
+    if(input.value.trim !== "") {
 
         getInfo(input.value).then(data => {
             ipText.innerHTML = data.ip;
@@ -57,7 +57,7 @@ const showInfo = () => {
 
         }).catch(err => console.log(err));  
 
-    // The condition below is met whenever the input field is empty or on page load.
+    // Load the user IP on page load or on empty input submit
     } else {
         getInfo(myIp).then(data => {
             ipText.innerHTML = data.ip;
@@ -67,30 +67,22 @@ const showInfo = () => {
 
             map.panTo(new L.LatLng(data.location.lat, data.location.lng)).getBounds(500);
             L.marker([data.location.lat, data.location.lng]).addTo(map);
-    }).catch(err => console.log(err));
+        }).catch(err => console.log(err));
     }
 }
 
 const getMyIp = async () => {
     const response = await fetch('https://api.ipify.org?format=json');
-    const data = response.json();
+    const data = await response.json();
     return data;
 }
 
 let myIp;
 
-getMyIp()
-.then(data => {
-
+getMyIp().then(data => {
     myIp = data.ip;
-    getInfo(myIp)
-        .then(data => {                
-                showInfo();
-    })
-        .catch(err => console.log(err));
-    
-})
-.catch(err => console.log(err));
+    getInfo(myIp).then(showInfo()).catch(err => console.log(err));
+}).catch(err => console.log(err));
 
 submitBtn.addEventListener('click', showInfo);
 input.addEventListener('keyup', e => {
